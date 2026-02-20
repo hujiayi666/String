@@ -3,100 +3,52 @@
 typedef struct {
     char ch[MAXLEN];
     int length;
-} SString;
+}SString;
 
-// 计算模式串T的next数组
-void Get_next(SString T, int next[]) {
-    int i = 1, j = 0;  // 注意：j初始值是0，不是1（原代码j初始1会导致逻辑错误）
-    next[1] = 0;
-    while (i < T.length) {
-        if (j == 0 || T.ch[i] == T.ch[j]) {
+// BF算法（下标从0开始实现）
+// 返回值：匹配成功返回从1开始的位置，失败返回0（符合常规算法输出习惯）
+int Index(SString S,SString T) {
+    int i=0, j=0; // 下标从0开始
+    // 循环条件：i不越界（0~S.length-1），j不越界（0~T.length-1）
+    while (i < S.length && j < T.length) {
+        if (S.ch[i] == T.ch[j]) { // 字符匹配，指针同时后移
             ++i;
             ++j;
-            next[i] = j;
-        } else {
-            j = next[j];
+        } else { // 字符不匹配，主串指针回退，模式串指针重置
+            i = i - j + 1; // 下标0开始的回退公式
+            j = 0; // j重置为0（而非1）
         }
     }
-}
-
-// KMP匹配：在主串S中找模式串T，返回首次匹配的起始位置（从1开始），无匹配返回0
-int Index_KMP(SString S, SString T, int next[]) {
-    int i = 1, j = 1;
-    while (i <= S.length && j <= T.length) {
-        if (j == 0 || S.ch[i] == T.ch[j]) {
-            ++i;
-            ++j;
-        } else {
-            j = next[j];
-        }
-    }
-    // 修正：j超过模式串长度时，说明完全匹配
-    if (j > T.length) {
-        return i - T.length;
+    // 匹配成功：j遍历完模式串所有字符
+    if (j >= T.length) {
+        // 返回从1开始的位置（算法常用），如果想返回0开始的位置，去掉+1即可
+        return (i - T.length) + 1;
     } else {
-        return 0;
+        return 0; // 匹配失败
     }
 }
-void Get_nextval(SString T, int nextval[]) {
-    int i = 1, j = 0;
-    nextval[1] = 0;
-    while (i < T.length) {
-        if (j == 0 || T.ch[i] == T.ch[j]) {
-            ++i;
-            ++j;
-            if (T.ch[i] != T.ch[j]) {
-                nextval[i] = j;
-            }
-            else {
-                nextval[i] = nextval[j];
-            }
-        }
-        else {
-            j = nextval[j];
-        }
-    }
-}
+
 int main() {
-    SString S;
-    SString T;
-    // 初始化主串S："aaabaaaab"（长度9）
-    S.ch[1] = 'a';
-    S.ch[2] = 'a';
-    S.ch[3] = 'a';
-    S.ch[4] = 'b';
-    S.ch[5] = 'a';
-    S.ch[6] = 'a';
-    S.ch[7] = 'a';
-    S.ch[8] = 'a';
-    S.ch[9] = 'b';
-    S.length = 9;
-    // 初始化模式串T："aaaab"（长度5）
-    T.ch[1] = 'a';
-    T.ch[2] = 'a';
-    T.ch[3] = 'a';
-    T.ch[4] = 'a';
-    T.ch[5] = 'b';
-    T.length = 5;
-    int index;
-    // 修正1：next数组长度至少为T.length+1（覆盖1~T.length）
-    int next[MAXLEN];
-    // 修正2：传入模式串T计算next数组
-    Get_next(T, next);
-    // KMP匹配
-    index = Index_KMP(S, T, next);
-    // 输出结果：应该是5（主串第5位开始匹配到模式串）
-    printf("%d\n", index);
-    int nextval[MAXLEN];
-    Get_nextval(T, nextval);
-    int index2 = Index_KMP(S, T, nextval);
-    printf("%d\n", index2);
-    for (int i=1;i<=5;i++) {
-        printf("%d\n", next[i]);
-    }
-    printf("============\n");
-    for (int i=1;i<=5;i++) {
-        printf("%d\n", nextval[i]);
-    }
+    SString S,T;
+    // 主串S：下标0~7，字符a~h，长度8（正确）
+    S.ch[0]='a';
+    S.ch[1]='b';
+    S.ch[2]='c';
+    S.ch[3]='d';
+    S.ch[4]='e';
+    S.ch[5]='f';
+    S.ch[6]='g';
+    S.ch[7]='h';
+    S.length=8;
+
+    // 模式串T：下标0~2，字符d~f，长度3（正确）
+    T.ch[0]='d';
+    T.ch[1]='e';
+    T.ch[2]='f';
+    T.length=3;
+
+    int index=Index(S,T);
+    // 统一用C++输出，避免混用printf
+    printf("%d\n",index);
     return 0;
 }
